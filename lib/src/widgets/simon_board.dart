@@ -1,20 +1,14 @@
 import 'package:flutter/material.dart';
 
-import 'package:simon_says/src/services/simon_game_service.dart';
+import 'package:simon_says/src/models/constants.dart';
+
 import 'package:simon_says/src/widgets/round_score.dart';
 import 'package:simon_says/src/widgets/simon_button.dart';
 
-enum SimonColor { green, red, yellow, blue }
-
 class SimonBoard extends StatelessWidget {
-  final SimonGameService _service;
-
-  SimonBoard(this._service);
-
   @override
   Widget build(BuildContext context) {
-    return Stack(
-        children: <Widget>[_buildButtons(), RoundScore(_service, _startGame)]);
+    return Stack(children: <Widget>[_buildButtons(), RoundScore()]);
   }
 
   Widget _buildButtons() {
@@ -45,16 +39,6 @@ class SimonBoard extends StatelessWidget {
   }
 
   Widget _buildButton(SimonColor color) {
-    return Expanded(
-        child:
-            SimonButton(_service, color: color, onPressed: _onButtonPressed));
-  }
-
-  void _onButtonPressed(SimonColor color) {
-    _service.play.add(color);
-  }
-
-  void _startGame() {
-    _service.startGame();
+    return Expanded(child: SimonButton(color));
   }
 }

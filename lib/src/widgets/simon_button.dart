@@ -1,81 +1,95 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
-import 'package:simon_says/src/services/simon_game_service.dart';
+import 'package:rxdart/rxdart.dart';
 
-import 'package:simon_says/src/widgets/simon_board.dart' show SimonColor;
+import 'package:simon_says/src/bloc/bloc_provider.dart';
+
+import 'package:simon_says/src/models/constants.dart';
 
 final double buttonPadding = 12.0;
 final double buttonPressedPadding = 24.0;
 
-class SimonButton extends StatefulWidget {
+final int timerMs = 200;
+
+enum SimonButtonState { pressed, normal }
+
+class SimonButton extends StatelessWidget {
   final SimonColor color;
-  final Function onPressed;
-  final SimonGameService _service;
 
-  final int timerMs = 200;
+  // an event here will mean either that the button has been tapped down or that is released
+  // we can handle this better later on with animations
+  final PublishSubject<bool> _isTapDown$ = PublishSubject<bool>();
 
-  SimonButton(this._service, {@required this.color, @required this.onPressed});
-
-  @override
-  _SimonButtonState createState() => _SimonButtonState();
-}
-
-class _SimonButtonState extends State<SimonButton> {
-  double _padding = buttonPadding;
-  bool _isPressed = false;
-  GameState _state;
+  SimonButton(this.color);
 
   @override
   Widget build(BuildContext context) {
-    widget._service.currentPlay$.listen(_handlePlay);
-    widget._service.state$.listen((state) => _state = state);
+    final bloc = BlocProvider.of(context).gameBloc;
+
+    // transform simon play into a tap down button event if the play involves this button
+    final Stream<bool> simonPlay$ = bloc.simonPlay$
+        .where((gamePlay) => gamePlay.play == color)
+        .map((_) => true);
+
+    // generate event from the button only if this is the users turn
+    final Stream<bool> _isValidTapDown$ =
+        Observable.combineLatest2(bloc.state$, _isTapDown$, (state, isTapDown) {
+      if (state == GameState.userSays && isTapDown) {
+        print('animate user tap down for $color');
+        bloc.play.add(color);
+        return isTapDown;
+      }
+    });
+
+    return StreamBuilder(
+        stream: Observable.merge([simonPlay$, _isValidTapDown$]),
+        builder: (context, snapshot) {
+          if (snapshot.hasData) {
+            return _buildButton(
+                context,
+                snapshot.data
+                    ? SimonButtonState.pressed
+                    : SimonButtonState.normal);
+          }
+          return _buildButton(context, SimonButtonState.normal);
+        });
+  }
+
+  Widget _buildButton(BuildContext context, SimonButtonState state) {
+    var padding =
+        state == SimonButtonState.normal ? buttonPadding : buttonPressedPadding;
+    var bColor = _getColor(state == SimonButtonState.pressed);
+
+    if (state == SimonButtonState.pressed) {
+      // we could handle this with the observables as well, for each true emit a false after timerMs
+      Timer(Duration(milliseconds: timerMs), () => _isTapDown$.add(false));
+    }
 
     return Container(
-      margin: EdgeInsets.all(_padding),
+      margin: EdgeInsets.all(padding),
       child: GestureDetector(
-        onTapDown: _onTapDown,
+        onTapDown: (details) => _isTapDown$.add(true),
         child: Container(
             decoration: BoxDecoration(
-                color: _color,
+                color: bColor,
                 borderRadius: BorderRadius.all(Radius.circular(10.0)))),
       ),
     );
   }
 
-  void _onTapDown(TapDownDetails details) {
-    if (_state == GameState.userSays) {
-      widget.onPressed(widget.color);
-    }
-    _updateState(buttonPressedPadding, true);
-    Timer(Duration(milliseconds: widget.timerMs),
-        () => _updateState(buttonPadding, false));
-  }
-
-  void _updateState(double padding, bool isPressed) {
-    setState(() {
-      _padding = padding;
-      _isPressed = isPressed;
-    });
-  }
-
-  void _handlePlay(SimonColor color) {
-    if (color == widget.color) {
-      _onTapDown(null);
-    }
-  }
-
-  Color get _color {
-    switch (widget.color) {
+  Color _getColor(bool isPressed) {
+    switch (color) {
       case SimonColor.green:
-        return _isPressed ? Colors.green[300] : Colors.green;
+        return isPressed ? Colors.green[300] : Colors.green;
       case SimonColor.red:
-        return _isPressed ? Colors.red[300] : Colors.red;
+        return isPressed ? Colors.red[300] : Colors.red;
       case SimonColor.yellow:
-        return _isPressed ? Colors.yellow[300] : Colors.yellow;
+        return isPressed ? Colors.yellow[300] : Colors.yellow;
       case SimonColor.blue:
-        return _isPressed ? Colors.blue[300] : Colors.blue;
+        return isPressed ? Colors.blue[300] : Colors.blue;
+      default:
+        return null;
     }
-    return null;
   }
 }

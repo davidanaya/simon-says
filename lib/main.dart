@@ -1,44 +1,32 @@
 import 'package:flutter/material.dart';
 
-import 'package:simon_says/src/services/simon_game_service.dart';
-import 'package:simon_says/src/services/simon_sounds_player.dart';
-import 'package:simon_says/src/widgets/simon_board.dart';
+import 'package:simon_says/src/bloc/app_bloc.dart';
+import 'package:simon_says/src/bloc/bloc_provider.dart';
+
+import 'package:simon_says/src/pages/home_page.dart';
 
 void main() {
-  runApp(MyApp());
+  final appBloc = AppBloc();
+
+  runApp(MyApp(appBloc));
 }
 
 class MyApp extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Simon Says',
-      theme: ThemeData(
-        primarySwatch: Colors.blue,
-      ),
-      home: MyHomePage(),
-    );
-  }
-}
+  final AppBloc bloc;
 
-class MyHomePage extends StatelessWidget {
-  // sounds player does not work well at the moment, that's why it's not being used
-  final SimonSoundsPlayer player = SimonSoundsPlayer();
-  final SimonGameService service = SimonGameService();
+  MyApp(this.bloc);
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-        appBar: AppBar(
-          title: Text('Simon Says'),
+    return BlocProvider(
+      bloc: bloc,
+      child: MaterialApp(
+        title: 'Simon Says',
+        theme: ThemeData(
+          primarySwatch: Colors.blue,
         ),
-        body: Center(
-            child: FutureBuilder(
-                future: player.loadSounds(context),
-                builder: (BuildContext context, AsyncSnapshot snapshot) {
-                  return snapshot.connectionState == ConnectionState.done
-                      ? SimonBoard(service)
-                      : CircularProgressIndicator();
-                })));
+        home: HomePage(),
+      ),
+    );
   }
 }
