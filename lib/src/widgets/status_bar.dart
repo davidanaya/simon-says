@@ -9,11 +9,8 @@ class StatusBar extends StatelessWidget {
     final bloc = BlocProvider.of(context).gameBloc;
     return StreamBuilder(
         stream: bloc.state$,
-        builder: (context, snapshot) {
-          if (snapshot.hasData) {
-            return _buildMessage(snapshot.data);
-          }
-        });
+        builder: (context, snapshot) =>
+            snapshot.hasData ? _buildMessage(snapshot.data) : Container());
   }
 
   Widget _buildMessage(GameState state) {
