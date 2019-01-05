@@ -34,9 +34,8 @@ class SimonButton extends StatelessWidget {
 
     // generate event from the button only if this is the users turn
     final Stream<bool> _isValidTapDown$ =
-        Observable.combineLatest2(bloc.state$, _isTapDown$, (state, isTapDown) {
+        _isTapDown$.withLatestFrom(bloc.state$, (isTapDown, state) {
       if (state == GameState.userSays && isTapDown) {
-        print('animate user tap down for $color');
         bloc.play.add(color);
         return isTapDown;
       }

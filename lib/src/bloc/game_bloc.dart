@@ -14,7 +14,7 @@ class GameBloc {
 
   final _userPlayController = StreamController<SimonColor>();
 
-  Stream<GameState> get state$ => _game.state$;
+  Stream<GameState> get state$ => _game.state$.distinct();
   Stream<int> get round$ => _game.round$;
 
   Stream<GamePlay> get simonPlay$ => _simonPlay$.stream
