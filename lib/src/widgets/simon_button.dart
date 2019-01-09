@@ -6,89 +6,127 @@ import 'package:rxdart/rxdart.dart';
 import 'package:simon_says/src/bloc/bloc_provider.dart';
 
 import 'package:simon_says/src/models/constants.dart';
+import 'package:simon_says/src/models/game_play.dart';
+import 'package:simon_says/src/models/simon_color.dart';
 
-final double buttonPadding = 12.0;
-final double buttonPressedPadding = 24.0;
+enum Tap { up, down }
 
-final int timerMs = 200;
+class SimonButton extends StatefulWidget {
+  final GameColor gameColor;
+  final SimonColor simonColor;
 
-enum SimonButtonState { pressed, normal }
+  SimonButton(this.gameColor) : simonColor = gameColors[gameColor];
 
-class SimonButton extends StatelessWidget {
-  final SimonColor color;
+  @override
+  _SimonButtonState createState() => _SimonButtonState();
+}
 
-  // an event here will mean either that the button has been tapped down or that is released
-  // we can handle this better later on with animations
-  final PublishSubject<bool> _isTapDown$ = PublishSubject<bool>();
+class _SimonButtonState extends State<SimonButton>
+    with TickerProviderStateMixin {
+  Animation<double> _animation;
+  AnimationController _animationController;
 
-  SimonButton(this.color);
+  PublishSubject<Tap> _userTap$;
+  StreamSubscription<GamePlay> _simonPlaySubs;
+  StreamSubscription<Tap> _userTapSubs;
+
+  @override
+  void initState() {
+    super.initState();
+
+    // initialize animation controllers for the button
+    _animationController = AnimationController(
+        duration: Duration(
+            milliseconds: gameSpeedTimes[GameSpeedTimeMs.buttonAnimation]),
+        vsync: this);
+    _animation = Tween(begin: 12.0, end: 24.0).animate(
+        CurvedAnimation(parent: _animationController, curve: Curves.linear));
+
+    // creates a new subject to deal with user taps
+    _userTap$ = PublishSubject<Tap>();
+  }
+
+  @override
+  didChangeDependencies() {
+    super.didChangeDependencies();
+
+    // get bloc reference through the context
+    var bloc = BlocProvider.of(this.context).gameBloc;
+
+    // subscribe to simon plays and animate button
+    _simonPlaySubs = Observable(bloc.simonPlay$)
+        .doOnData((play) => print('simonPlay\$ ${play.play}'))
+        .where((gamePlay) => gamePlay.play == widget.gameColor)
+        .listen(_handleSimonPlay);
+
+    // subscribe to user plays and animate only if it's the user turn
+    _userTapSubs = _userTap$
+        .doOnData((tap) => print('_userTap\$ ${tap}'))
+        .withLatestFrom(
+            bloc.state$.where((state) => state == GameState.userSays),
+            (tap, state) => tap)
+        .listen((tap) => _handleUserTap(tap, bloc.userPlay));
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
+    _simonPlaySubs.cancel();
+    _userTapSubs.cancel();
+  }
 
   @override
   Widget build(BuildContext context) {
-    final bloc = BlocProvider.of(context).gameBloc;
-
-    // transform simon play into a tap down button event if the play involves this button
-    final Stream<bool> simonPlay$ = bloc.simonPlay$
-        .where((gamePlay) => gamePlay.play == color)
-        .map((_) => true);
-
-    // generate event from the button only if this is the users turn
-    final Stream<bool> _isValidTapDown$ =
-        _isTapDown$.withLatestFrom(bloc.state$, (isTapDown, state) {
-      if (state == GameState.userSays && isTapDown) {
-        bloc.play.add(color);
-        return isTapDown;
-      }
-    });
-
-    return StreamBuilder(
-        stream: Observable.merge([simonPlay$, _isValidTapDown$]),
-        builder: (context, snapshot) {
-          if (snapshot.hasData) {
-            return _buildButton(
-                context,
-                snapshot.data
-                    ? SimonButtonState.pressed
-                    : SimonButtonState.normal);
-          }
-          return _buildButton(context, SimonButtonState.normal);
+    return AnimatedBuilder(
+        animation: _animation,
+        builder: (context, child) {
+          return Container(
+            child: _buildButton(
+                color: _animation.value == 12.0
+                    ? widget.simonColor.primary
+                    : widget.simonColor.accent),
+            color: Colors.black,
+            padding: EdgeInsets.all(_animation.value),
+          );
         });
   }
 
-  Widget _buildButton(BuildContext context, SimonButtonState state) {
-    var padding =
-        state == SimonButtonState.normal ? buttonPadding : buttonPressedPadding;
-    var bColor = _getColor(state == SimonButtonState.pressed);
-
-    if (state == SimonButtonState.pressed) {
-      // we could handle this with the observables as well, for each true emit a false after timerMs
-      Timer(Duration(milliseconds: timerMs), () => _isTapDown$.add(false));
-    }
-
-    return Container(
-      margin: EdgeInsets.all(padding),
-      child: GestureDetector(
-        onTapDown: (details) => _isTapDown$.add(true),
-        child: Container(
-            decoration: BoxDecoration(
-                color: bColor,
-                borderRadius: BorderRadius.all(Radius.circular(10.0)))),
-      ),
+  Widget _buildButton({Color color}) {
+    return GestureDetector(
+      onTapDown: _handleTapDown,
+      onTapUp: _handleTapUp,
+      child: Container(
+          decoration: BoxDecoration(
+              color: color,
+              borderRadius: BorderRadius.all(Radius.circular(10.0)))),
     );
   }
 
-  Color _getColor(bool isPressed) {
-    switch (color) {
-      case SimonColor.green:
-        return isPressed ? Colors.green[300] : Colors.green;
-      case SimonColor.red:
-        return isPressed ? Colors.red[300] : Colors.red;
-      case SimonColor.yellow:
-        return isPressed ? Colors.yellow[300] : Colors.yellow;
-      case SimonColor.blue:
-        return isPressed ? Colors.blue[300] : Colors.blue;
-      default:
-        return null;
+  void _handleUserTap(Tap tap, Sink<GameColor> userPlay) {
+    if (tap == Tap.down) {
+      _animationController.forward();
+    } else {
+      userPlay.add(widget.gameColor);
+      _animationController.reverse();
     }
+  }
+
+  void _handleSimonPlay(GamePlay play) {
+    _animationController.forward();
+    Timer(
+        Duration(milliseconds: gameSpeedTimes[GameSpeedTimeMs.buttonAnimation]),
+        () => _animationController.reverse());
+  }
+
+  void _handleTapDown(TapDownDetails tapDetails) {
+    // print('DOWN');
+    // _animationController.forward();
+    _userTap$.add(Tap.down);
+  }
+
+  void _handleTapUp(TapUpDetails tapDetails) {
+    // print('UP');
+    // _animationController.reverse();
+    _userTap$.add(Tap.up);
   }
 }

@@ -1,9 +1,7 @@
 import 'package:flutter/material.dart';
-
 import 'package:simon_says/src/models/constants.dart';
-
-import 'package:simon_says/src/widgets/round_score.dart';
 import 'package:simon_says/src/widgets/simon_button.dart';
+import 'package:simon_says/src/widgets/round_score.dart';
 
 class SimonBoard extends StatelessWidget {
   @override
@@ -19,14 +17,14 @@ class SimonBoard extends StatelessWidget {
   }
 
   Widget _buildTopRow() {
-    return _buildRow(SimonColor.green, SimonColor.red);
+    return _buildRow(GameColor.green, GameColor.red);
   }
 
   Widget _buildBottomRow() {
-    return _buildRow(SimonColor.yellow, SimonColor.blue);
+    return _buildRow(GameColor.yellow, GameColor.blue);
   }
 
-  Widget _buildRow(SimonColor color1, SimonColor color2) {
+  Widget _buildRow(GameColor color1, GameColor color2) {
     return Expanded(
       child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -38,7 +36,7 @@ class SimonBoard extends StatelessWidget {
     );
   }
 
-  Widget _buildButton(SimonColor color) {
+  Widget _buildButton(GameColor color) {
     return Expanded(child: SimonButton(color));
   }
 }

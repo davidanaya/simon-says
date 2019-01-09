@@ -4,23 +4,33 @@ import 'package:rxdart/rxdart.dart';
 import 'package:rxdart/subjects.dart';
 
 import 'package:simon_says/src/models/constants.dart';
-import 'package:simon_says/src/models/game.dart';
+import 'package:simon_says/src/models/game_plays.dart';
 import 'package:simon_says/src/models/game_play.dart';
 
 class GameBloc {
-  final _game = Game();
+  // plays
+  final _gamePlays = GamePlays();
 
   final _simonPlay$ = PublishSubject<GamePlay>();
+  final _userPlayController = StreamController<GameColor>();
 
-  final _userPlayController = StreamController<SimonColor>();
+  Stream<GamePlay> get simonPlay$ =>
+      _simonPlay$.stream.concatMap((play) => Observable.timer(
+          play,
+          Duration(
+              milliseconds: gameSpeedTimes[GameSpeedTimeMs.simonPlayDelay])));
 
-  Stream<GameState> get state$ => _game.state$.distinct();
-  Stream<int> get round$ => _game.round$;
+  Sink<GameColor> get userPlay => _userPlayController.sink;
 
-  Stream<GamePlay> get simonPlay$ => _simonPlay$.stream
-      .concatMap((play) => Observable.timer(play, Duration(milliseconds: 500)));
+  // state
+  final BehaviorSubject<GameState> _state$ =
+      BehaviorSubject<GameState>(seedValue: GameState.intro);
+  Stream<GameState> get state$ => _state$.stream.distinct();
 
-  Sink<SimonColor> get play => _userPlayController.sink;
+  // round
+  int _round = 0;
+  BehaviorSubject<int> _round$ = BehaviorSubject<int>(seedValue: 0);
+  Stream<int> get round$ => _round$;
 
   GameBloc() {
     state$.listen(_stateHandler);
@@ -28,7 +38,8 @@ class GameBloc {
     Observable(simonPlay$)
         .doOnData((play) => print('SIMON PLAY --> ${play.play}'))
         .where((play) => play.isLastPlay)
-        .delay(Duration(seconds: 1))
+        .delay(Duration(
+            milliseconds: gameSpeedTimes[GameSpeedTimeMs.lastPlayDelay]))
         .listen(_lastSimonPlayHandler);
 
     _userPlayController.stream.listen(_userPlayHandler);
@@ -42,35 +53,45 @@ class GameBloc {
   }
 
   _simonSaysHandler() {
-    _game.newRound();
-    print(
-        _game.simonSequence.map((play) => '(${play.play},${play.isLastPlay})'));
-    _game.simonSequence.forEach(_simonPlay$.add);
+    _setRound(_round + 1);
+    _gamePlays.newSimonPlay();
+    print(_gamePlays.simonPlays.map((play) => '${play.play}'));
+    _gamePlays.simonPlays.forEach(_simonPlay$.add);
   }
 
-  void _userPlayHandler(SimonColor play) {
+  void _userPlayHandler(GameColor play) {
     print('USER PLAY --> $play');
-    if (_game.validateUserPlay(play)) {
-      if (_game.isUserTurnFinished()) {
-        Timer(Duration(milliseconds: 1000),
-            () => _game.setState(GameState.simonSays));
+    if (_gamePlays.validateUserPlay(play)) {
+      if (_gamePlays.isUserTurnFinished()) {
+        Timer(
+            Duration(
+                milliseconds: gameSpeedTimes[GameSpeedTimeMs.lastPlayDelay]),
+            () => _state$.add(GameState.simonSays));
       }
     } else {
-      _game.setState(GameState.gameOver);
-      _game.endGame();
+      _state$.add(GameState.gameOver);
+      _setRound(0);
     }
   }
 
   void _lastSimonPlayHandler(GamePlay play) {
-    _game.setState(GameState.userSays);
+    _state$.add(GameState.userSays);
   }
 
   void startGame() {
-    _game.restartGame();
+    _setRound(0);
+    _gamePlays.clear();
+    _state$.add(GameState.simonSays);
   }
 
   void dispose() {
     _userPlayController.close();
+    _state$.close();
     _simonPlay$.close();
+  }
+
+  void _setRound(int round) {
+    _round = round;
+    _round$.add(_round);
   }
 }

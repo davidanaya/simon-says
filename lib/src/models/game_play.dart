@@ -1,7 +1,7 @@
 import 'package:simon_says/src/models/constants.dart';
 
 class GamePlay {
-  final SimonColor play;
+  final GameColor play;
   bool _isLastPlay = true;
 
   bool get isLastPlay => _isLastPlay;
