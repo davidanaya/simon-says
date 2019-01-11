@@ -15,10 +15,14 @@ final Map<GameSpeedTimeMs, int> gameSpeedTimes = {
 };
 
 final Map<GameColor, SimonColor> gameColors = {
-  GameColor.green: SimonColor(Colors.green, Colors.green[300]),
-  GameColor.red: SimonColor(Colors.red, Colors.red[300]),
-  GameColor.yellow: SimonColor(Colors.yellow, Colors.yellow[300]),
-  GameColor.blue: SimonColor(Colors.blue, Colors.blue[300])
+  GameColor.green: SimonColor(Colors.green,
+      accent: Colors.green[300], soundFileName: 'green'),
+  GameColor.red:
+      SimonColor(Colors.red, accent: Colors.red[300], soundFileName: 'red'),
+  GameColor.yellow: SimonColor(Colors.yellow,
+      accent: Colors.yellow[300], soundFileName: 'yellow'),
+  GameColor.blue:
+      SimonColor(Colors.blue, accent: Colors.blue[300], soundFileName: 'blue')
 };
 
 final Map<GameState, String> statusMessages = {

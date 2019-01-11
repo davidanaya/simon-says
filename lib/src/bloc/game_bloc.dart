@@ -2,17 +2,22 @@ import 'dart:async';
 
 import 'package:rxdart/rxdart.dart';
 import 'package:rxdart/subjects.dart';
-
 import 'package:simon_says/src/models/constants.dart';
-import 'package:simon_says/src/models/game_plays.dart';
 import 'package:simon_says/src/models/game_play.dart';
+import 'package:simon_says/src/models/game_plays.dart';
+import 'package:simon_says/src/services/sound_player.dart';
 
 class GameBloc {
+  // sound player
+  final SoundPlayer _soundPlayer;
+
   // plays
   final _gamePlays = GamePlays();
 
   final _simonPlay$ = PublishSubject<GamePlay>();
   final _userPlayController = StreamController<GameColor>();
+
+  final _playPressAnimationStart = StreamController<GameColor>();
 
   Stream<GamePlay> get simonPlay$ =>
       _simonPlay$.stream.concatMap((play) => Observable.timer(
@@ -21,6 +26,9 @@ class GameBloc {
               milliseconds: gameSpeedTimes[GameSpeedTimeMs.simonPlayDelay])));
 
   Sink<GameColor> get userPlay => _userPlayController.sink;
+
+  // play sound when key is pressed
+  Sink<void> get playPressAnimationStart => _playPressAnimationStart.sink;
 
   // state
   final BehaviorSubject<GameState> _state$ =
@@ -32,7 +40,9 @@ class GameBloc {
   BehaviorSubject<int> _round$ = BehaviorSubject<int>(seedValue: 0);
   Stream<int> get round$ => _round$;
 
-  GameBloc() {
+  GameBloc(this._soundPlayer) {
+    _soundPlayer.state$.listen((s) => print('audioPlayerState $s'));
+
     state$.listen(_stateHandler);
 
     Observable(simonPlay$)
@@ -43,6 +53,8 @@ class GameBloc {
         .listen(_lastSimonPlayHandler);
 
     _userPlayController.stream.listen(_userPlayHandler);
+
+    _playPressAnimationStart.stream.listen(_playSound);
   }
 
   void _stateHandler(GameState state) {
@@ -86,6 +98,8 @@ class GameBloc {
 
   void dispose() {
     _userPlayController.close();
+    _playPressAnimationStart.close();
+    _playPressAnimationEnd.close();
     _state$.close();
     _simonPlay$.close();
   }
@@ -93,5 +107,11 @@ class GameBloc {
   void _setRound(int round) {
     _round = round;
     _round$.add(_round);
+  }
+
+  void _playSound(GameColor play) async {
+    await _soundPlayer.stop();
+
+    _soundPlayer.play(play);
   }
 }

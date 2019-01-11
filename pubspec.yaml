@@ -20,7 +20,7 @@ dependencies:
   # Use with the CupertinoIcons class for iOS style icons.
   cupertino_icons: ^0.1.2
 
-  # audioplayer: ^0.5.2
+  audioplayer: ^0.5.2
   path_provider: ^0.4.1
   rxdart: ^0.20.0
 
@@ -38,11 +38,11 @@ flutter:
   # the material Icons class.
   uses-material-design: true
   # To add assets to your application, add an assets section, like this:
-  # assets:
-  #   - assets/sounds/blue.mp3
-  #   - assets/sounds/green.mp3
-  #   - assets/sounds/red.mp3
-  #   - assets/sounds/yellow.mp3
+  assets:
+    - assets/sounds/blue.mp3
+    - assets/sounds/green.mp3
+    - assets/sounds/red.mp3
+    - assets/sounds/yellow.mp3
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.io/assets-and-images/#resolution-aware.
   # For details regarding adding assets from package dependencies, see

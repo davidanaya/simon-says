@@ -27,6 +27,7 @@ class _SimonButtonState extends State<SimonButton>
   AnimationController _animationController;
 
   PublishSubject<Tap> _userTap$;
+
   StreamSubscription<GamePlay> _simonPlaySubs;
   StreamSubscription<Tap> _userTapSubs;
 
@@ -57,7 +58,7 @@ class _SimonButtonState extends State<SimonButton>
     _simonPlaySubs = Observable(bloc.simonPlay$)
         .doOnData((play) => print('simonPlay\$ ${play.play}'))
         .where((gamePlay) => gamePlay.play == widget.gameColor)
-        .listen(_handleSimonPlay);
+        .listen((play) => _handleSimonPlay(play, bloc.playPressAnimationStart));
 
     // subscribe to user plays and animate only if it's the user turn
     _userTapSubs = _userTap$
@@ -65,7 +66,8 @@ class _SimonButtonState extends State<SimonButton>
         .withLatestFrom(
             bloc.state$.where((state) => state == GameState.userSays),
             (tap, state) => tap)
-        .listen((tap) => _handleUserTap(tap, bloc.userPlay));
+        .listen((tap) =>
+            _handleUserTap(tap, bloc.userPlay, bloc.playPressAnimationStart));
   }
 
   @override
@@ -102,31 +104,33 @@ class _SimonButtonState extends State<SimonButton>
     );
   }
 
-  void _handleUserTap(Tap tap, Sink<GameColor> userPlay) {
+  void _handleUserTap(Tap tap, Sink<GameColor> userPlay,
+      Sink<GameColor> playPressAnimationStart) {
     if (tap == Tap.down) {
       _animationController.forward();
+      playPressAnimationStart.add(widget.gameColor);
     } else {
       userPlay.add(widget.gameColor);
       _animationController.reverse();
     }
   }
 
-  void _handleSimonPlay(GamePlay play) {
+  void _handleSimonPlay(
+      GamePlay play, Sink<GameColor> playPressAnimationStart) {
     _animationController.forward();
+    playPressAnimationStart.add(widget.gameColor);
     Timer(
         Duration(milliseconds: gameSpeedTimes[GameSpeedTimeMs.buttonAnimation]),
-        () => _animationController.reverse());
+        () {
+      _animationController.reverse();
+    });
   }
 
   void _handleTapDown(TapDownDetails tapDetails) {
-    // print('DOWN');
-    // _animationController.forward();
     _userTap$.add(Tap.down);
   }
 
   void _handleTapUp(TapUpDetails tapDetails) {
-    // print('UP');
-    // _animationController.reverse();
     _userTap$.add(Tap.up);
   }
 }
