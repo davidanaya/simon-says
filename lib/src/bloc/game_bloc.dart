@@ -99,7 +99,6 @@ class GameBloc {
   void dispose() {
     _userPlayController.close();
     _playPressAnimationStart.close();
-    _playPressAnimationEnd.close();
     _state$.close();
     _simonPlay$.close();
   }
