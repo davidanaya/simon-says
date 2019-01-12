@@ -23,6 +23,9 @@ class SimonButton extends StatefulWidget {
 
 class _SimonButtonState extends State<SimonButton>
     with TickerProviderStateMixin {
+  final buttonPadding = 12.0;
+  final buttonPaddingAccent = 24.0;
+
   Animation<double> _animation;
   AnimationController _animationController;
 
@@ -31,20 +34,27 @@ class _SimonButtonState extends State<SimonButton>
   StreamSubscription<GamePlay> _simonPlaySubs;
   StreamSubscription<Tap> _userTapSubs;
 
+  bool _isFailedPlay = false;
+
   @override
   void initState() {
     super.initState();
 
     // initialize animation controllers for the button
     _animationController = AnimationController(
-        duration: Duration(
-            milliseconds: gameSpeedTimes[GameSpeedTimeMs.buttonAnimation]),
-        vsync: this);
-    _animation = Tween(begin: 12.0, end: 24.0).animate(
+        duration: Duration(milliseconds: buttonAnimationMs), vsync: this);
+    _animation = Tween(begin: buttonPadding, end: buttonPaddingAccent).animate(
         CurvedAnimation(parent: _animationController, curve: Curves.linear));
 
     // creates a new subject to deal with user taps
     _userTap$ = PublishSubject<Tap>();
+
+    // after the reverse set the color back to normal in case it was changed in a failed play
+    _animation.addStatusListener((status) {
+      if (_isFailedPlay && status == AnimationStatus.dismissed) {
+        _isFailedPlay = false;
+      }
+    });
   }
 
   @override
@@ -62,7 +72,7 @@ class _SimonButtonState extends State<SimonButton>
 
     // subscribe to user plays and animate only if it's the user turn
     _userTapSubs = _userTap$
-        .doOnData((tap) => print('_userTap\$ ${tap}'))
+        .doOnData((tap) => print('_userTap\$ $tap'))
         .withLatestFrom(
             bloc.state$.where((state) => state == GameState.userSays),
             (tap, state) => tap)
@@ -84,9 +94,9 @@ class _SimonButtonState extends State<SimonButton>
         builder: (context, child) {
           return Container(
             child: _buildButton(
-                color: _animation.value == 12.0
-                    ? widget.simonColor.primary
-                    : widget.simonColor.accent),
+                color: _animation.value == buttonPadding
+                    ? _getPrimaryColor()
+                    : _getAccentColor()),
             color: Colors.black,
             padding: EdgeInsets.all(_animation.value),
           );
@@ -117,11 +127,14 @@ class _SimonButtonState extends State<SimonButton>
 
   void _handleSimonPlay(
       GamePlay play, Sink<GameColor> playPressAnimationStart) {
+    _isFailedPlay = play.isFailedPlay;
     _animationController.forward();
     playPressAnimationStart.add(widget.gameColor);
     Timer(
-        Duration(milliseconds: gameSpeedTimes[GameSpeedTimeMs.buttonAnimation]),
-        () {
+        Duration(
+            milliseconds: play.isFailedPlay
+                ? failedPlayButtonAnimationMs
+                : buttonAnimationMs), () {
       _animationController.reverse();
     });
   }
@@ -132,5 +145,13 @@ class _SimonButtonState extends State<SimonButton>
 
   void _handleTapUp(TapUpDetails tapDetails) {
     _userTap$.add(Tap.up);
+  }
+
+  Color _getPrimaryColor() {
+    return _isFailedPlay ? failColor.primary : widget.simonColor.primary;
+  }
+
+  Color _getAccentColor() {
+    return _isFailedPlay ? failColor.accent : widget.simonColor.accent;
   }
 }

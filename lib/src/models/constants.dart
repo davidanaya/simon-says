@@ -6,13 +6,12 @@ enum GameState { intro, simonSays, userSays, gameOver }
 
 enum GameColor { green, red, yellow, blue }
 
-enum GameSpeedTimeMs { buttonAnimation, simonPlayDelay, lastPlayDelay }
-
-final Map<GameSpeedTimeMs, int> gameSpeedTimes = {
-  GameSpeedTimeMs.buttonAnimation: 200,
-  GameSpeedTimeMs.simonPlayDelay: 500,
-  GameSpeedTimeMs.lastPlayDelay: 1000,
-};
+final int buttonAnimationMs = 200;
+final int simonPlayDelayMs = 500;
+final int lastPlayDelayMs = 1000;
+final int failedPlayRepeatTimes = 3;
+final int failedPlayRepeatDelayMs = 300;
+final int failedPlayButtonAnimationMs = 100;
 
 final Map<GameColor, SimonColor> gameColors = {
   GameColor.green: SimonColor(Colors.green,
@@ -24,6 +23,8 @@ final Map<GameColor, SimonColor> gameColors = {
   GameColor.blue:
       SimonColor(Colors.blue, accent: Colors.blue[300], soundFileName: 'blue')
 };
+
+final SimonColor failColor = SimonColor(Colors.grey, accent: Colors.grey[300]);
 
 final Map<GameState, String> statusMessages = {
   GameState.intro: 'Ready to play? Tap the center',

@@ -23,7 +23,9 @@ class GameBloc {
       _simonPlay$.stream.concatMap((play) => Observable.timer(
           play,
           Duration(
-              milliseconds: gameSpeedTimes[GameSpeedTimeMs.simonPlayDelay])));
+              milliseconds: play.isFailedPlay
+                  ? failedPlayRepeatDelayMs
+                  : simonPlayDelayMs)));
 
   Sink<GameColor> get userPlay => _userPlayController.sink;
 
@@ -48,13 +50,25 @@ class GameBloc {
     Observable(simonPlay$)
         .doOnData((play) => print('SIMON PLAY --> ${play.play}'))
         .where((play) => play.isLastPlay)
-        .delay(Duration(
-            milliseconds: gameSpeedTimes[GameSpeedTimeMs.lastPlayDelay]))
+        .delay(Duration(milliseconds: lastPlayDelayMs))
         .listen(_lastSimonPlayHandler);
 
     _userPlayController.stream.listen(_userPlayHandler);
 
     _playPressAnimationStart.stream.listen(_playSound);
+  }
+
+  void startGame() {
+    _setRound(0);
+    _gamePlays.clear();
+    _state$.add(GameState.simonSays);
+  }
+
+  void dispose() {
+    _userPlayController.close();
+    _playPressAnimationStart.close();
+    _state$.close();
+    _simonPlay$.close();
   }
 
   void _stateHandler(GameState state) {
@@ -75,13 +89,12 @@ class GameBloc {
     print('USER PLAY --> $play');
     if (_gamePlays.validateUserPlay(play)) {
       if (_gamePlays.isUserTurnFinished()) {
-        Timer(
-            Duration(
-                milliseconds: gameSpeedTimes[GameSpeedTimeMs.lastPlayDelay]),
+        Timer(Duration(milliseconds: lastPlayDelayMs),
             () => _state$.add(GameState.simonSays));
       }
     } else {
       _state$.add(GameState.gameOver);
+      _sentFailPlayBatch();
       _setRound(0);
     }
   }
@@ -90,27 +103,20 @@ class GameBloc {
     _state$.add(GameState.userSays);
   }
 
-  void startGame() {
-    _setRound(0);
-    _gamePlays.clear();
-    _state$.add(GameState.simonSays);
-  }
-
-  void dispose() {
-    _userPlayController.close();
-    _playPressAnimationStart.close();
-    _state$.close();
-    _simonPlay$.close();
-  }
-
   void _setRound(int round) {
     _round = round;
     _round$.add(_round);
   }
 
+  void _sentFailPlayBatch() {
+    var failedPlay = GamePlay(_gamePlays.getFailedPlay(),
+        isLastPlay: false, isFailedPlay: true);
+    RepeatStream((count) => Observable.just(failedPlay), failedPlayRepeatTimes)
+        .listen(_simonPlay$.add);
+  }
+
   void _playSound(GameColor play) async {
     await _soundPlayer.stop();
-
     _soundPlayer.play(play);
   }
 }

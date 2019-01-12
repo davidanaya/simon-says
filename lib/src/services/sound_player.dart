@@ -40,5 +40,6 @@ class SoundPlayer {
     File tempFile = File('${tempDir.path}/$name.mp3');
     await tempFile.writeAsBytes(data.buffer.asUint8List(), flush: true);
     _sounds[color] = tempFile.path;
+    // print('loadSound $name --> ${tempFile.path}');
   }
 }

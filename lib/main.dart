@@ -26,7 +26,7 @@ class MyApp extends StatelessWidget {
         builder: (BuildContext context, AsyncSnapshot snapshot) {
           return snapshot.connectionState == ConnectionState.done
               ? _buildApp()
-              : CircularProgressIndicator();
+              : Center(child: CircularProgressIndicator());
         });
   }
 

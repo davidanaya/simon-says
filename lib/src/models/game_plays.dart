@@ -30,6 +30,10 @@ class GamePlays {
     return _userPlayIndex == _simonPlays.length - 1;
   }
 
+  GameColor getFailedPlay() {
+    return _simonPlays[_userPlayIndex].play;
+  }
+
   bool _isValidUserPlay(GameColor play) {
     return _simonPlays[_userPlayIndex].play == play;
   }
