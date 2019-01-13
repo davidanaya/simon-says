@@ -14,7 +14,9 @@ class StatusBar extends StatelessWidget {
   }
 
   Widget _buildMessage(GameState state) {
-    var text = statusMessages[state];
+    var text = state == GameState.simonSays || state == GameState.userSays
+        ? statusMessages[state]
+        : '';
     return Container(
         color: Colors.black,
         child: Text(

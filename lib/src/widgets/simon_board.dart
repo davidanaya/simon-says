@@ -1,12 +1,28 @@
 import 'package:flutter/material.dart';
+import 'package:simon_says/src/bloc/bloc_provider.dart';
 import 'package:simon_says/src/models/constants.dart';
-import 'package:simon_says/src/widgets/simon_button.dart';
+import 'package:simon_says/src/widgets/no_game_info_overlay.dart';
 import 'package:simon_says/src/widgets/round_score.dart';
+import 'package:simon_says/src/widgets/simon_button.dart';
 
 class SimonBoard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return Stack(children: <Widget>[_buildButtons(), RoundScore()]);
+    final bloc = BlocProvider.of(context).gameBloc;
+
+    return StreamBuilder(
+        stream: bloc.state$,
+        builder: (context, snapshot) {
+          var children = [_buildButtons(), RoundScore()];
+          if (!snapshot.hasData) {
+            return Container();
+          }
+          if (snapshot.data == GameState.intro ||
+              snapshot.data == GameState.gameOver) {
+            children.add(NoGameInfoOverlay(snapshot.data as GameState));
+          }
+          return Stack(children: children);
+        });
   }
 
   Widget _buildButtons() {

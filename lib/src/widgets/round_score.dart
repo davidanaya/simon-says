@@ -21,7 +21,7 @@ class RoundScore extends StatelessWidget {
               builder: (context, snapshot) =>
                   snapshot.hasData && snapshot.data != 0
                       ? _buildRoundLabel(snapshot.data)
-                      : _buildPlayButton(bloc.startGame),
+                      : Container(),
             )));
   }
 
@@ -34,11 +34,5 @@ class RoundScore extends StatelessWidget {
               fontSize: 32.0,
               fontWeight: FontWeight.w700)),
     );
-  }
-
-  Widget _buildPlayButton(Function onStartFn) {
-    return IconButton(
-        icon: Icon(Icons.play_arrow, size: 42.0, color: Colors.white),
-        onPressed: onStartFn);
   }
 }
