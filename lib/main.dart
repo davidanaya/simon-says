@@ -37,6 +37,7 @@ class MyApp extends StatelessWidget {
         title: 'Simon Says',
         theme: ThemeData(
           primarySwatch: Colors.blue,
+          fontFamily: 'Lalezar',
         ),
         home: HomePage(),
       ),

@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:simon_says/src/models/game_state.dart';
 
 import 'package:simon_says/src/models/simon_color.dart';
 
-enum GameState { intro, simonSays, userSays, gameOver }
+// enum GameState { intro, simonSays, userSays, gameOver }
 
 enum GameColor { green, red, yellow, blue }
 
@@ -27,11 +28,11 @@ final Map<GameColor, SimonColor> gameColors = {
 
 final SimonColor failColor = SimonColor(Colors.grey, accent: Colors.grey[300]);
 
-final String gameTitle = 'S I M O N  S A Y S';
+final String gameTitle = 'simon says';
 
-final Map<GameState, String> statusMessages = {
-  GameState.intro: 'Ready to play?',
-  GameState.simonSays: 'Simon\'s turn, pay attention...',
-  GameState.userSays: 'Your turn...',
-  GameState.gameOver: 'G A M E  O V E R'
+final Map<String, String> statusMessages = {
+  GameState.Intro: 'Ready to play?',
+  GameState.SimonSays: 'Simon\'s turn, pay attention...',
+  GameState.UserSays: 'Your turn...',
+  GameState.GameOver: 'G A M E  O V E R'
 };

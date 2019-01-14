@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:simon_says/src/bloc/bloc_provider.dart';
 import 'package:simon_says/src/models/constants.dart';
+import 'package:simon_says/src/models/game_state.dart';
 import 'package:simon_says/src/widgets/no_game_info_overlay.dart';
 import 'package:simon_says/src/widgets/round_score.dart';
 import 'package:simon_says/src/widgets/simon_button.dart';
@@ -14,12 +15,12 @@ class SimonBoard extends StatelessWidget {
         stream: bloc.state$,
         builder: (context, snapshot) {
           var children = [_buildButtons(), RoundScore()];
+
           if (!snapshot.hasData) {
-            return Container();
+            return CircularProgressIndicator();
           }
-          if (snapshot.data == GameState.intro ||
-              snapshot.data == GameState.gameOver) {
-            children.add(NoGameInfoOverlay(snapshot.data as GameState));
+          if (!(snapshot.data as GameState).isPlayState) {
+            children.add(NoGameInfoOverlay(snapshot.data));
           }
           return Stack(children: children);
         });

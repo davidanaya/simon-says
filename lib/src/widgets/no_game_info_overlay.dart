@@ -1,13 +1,12 @@
-import 'dart:async';
-
 import 'package:flutter/material.dart';
 import 'package:simon_says/src/bloc/bloc_provider.dart';
 import 'package:simon_says/src/models/constants.dart';
+import 'package:simon_says/src/models/game_state.dart';
 
 class NoGameInfoOverlay extends StatefulWidget {
-  final GameState state;
+  final GameState gameState;
 
-  NoGameInfoOverlay(this.state);
+  NoGameInfoOverlay(this.gameState);
 
   @override
   _NoGameInfoOverlayState createState() => _NoGameInfoOverlayState();
@@ -21,13 +20,14 @@ class _NoGameInfoOverlayState extends State<NoGameInfoOverlay> {
   @override
   void initState() {
     super.initState();
-    _opacityLevel = widget.state == GameState.intro ? opacityWhenBuilt : 0.0;
+    _opacityLevel =
+        widget.gameState.state == GameState.Intro ? opacityWhenBuilt : 0.0;
     // execute after widget has been built
     WidgetsBinding.instance.addPostFrameCallback((_) => _startAnimation());
   }
 
   void _startAnimation() {
-    if (widget.state != GameState.intro) {
+    if (widget.gameState.state != GameState.Intro) {
       if (this.mounted) setState(() => _opacityLevel = opacityWhenBuilt);
     }
   }
@@ -54,6 +54,7 @@ class _NoGameInfoOverlayState extends State<NoGameInfoOverlay> {
       crossAxisAlignment: CrossAxisAlignment.center,
       children: <Widget>[
         _buildStateLabel(),
+        _buildScore(),
         _buildPlay(context),
       ],
     );
@@ -61,11 +62,20 @@ class _NoGameInfoOverlayState extends State<NoGameInfoOverlay> {
 
   Widget _buildStateLabel() {
     return Text(
-      widget.state == GameState.gameOver
-          ? statusMessages[GameState.gameOver]
+      widget.gameState.state == GameState.GameOver
+          ? statusMessages[GameState.GameOver]
           : gameTitle,
-      style: TextStyle(fontSize: 32.0, color: Colors.white),
+      style: TextStyle(fontSize: 24.0, color: Colors.white),
     );
+  }
+
+  Widget _buildScore() {
+    return Column(children: [
+      Text('Round: ${widget.gameState.round}',
+          style: TextStyle(fontSize: 32.0, color: Colors.white)),
+      Text('Time: ${widget.gameState.duration} secs',
+          style: TextStyle(fontSize: 32.0, color: Colors.white))
+    ]);
   }
 
   Widget _buildPlay(BuildContext context) {
@@ -78,8 +88,8 @@ class _NoGameInfoOverlayState extends State<NoGameInfoOverlay> {
 
   Widget _buildPlayLabel() {
     return Text(
-      statusMessages[GameState.intro],
-      style: TextStyle(fontSize: 16.0, color: Colors.white),
+      statusMessages[GameState.Intro],
+      style: TextStyle(fontSize: 24.0, color: Colors.white),
     );
   }
 

@@ -8,7 +8,10 @@ class HomePage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       body: Center(child: SimonBoard()),
-      bottomNavigationBar: BottomAppBar(child: StatusBar()),
+      bottomNavigationBar: BottomAppBar(
+        child: StatusBar(),
+        elevation: 0.0,
+      ),
     );
   }
 }

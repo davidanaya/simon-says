@@ -5,6 +5,7 @@ import 'package:rxdart/subjects.dart';
 import 'package:simon_says/src/models/constants.dart';
 import 'package:simon_says/src/models/game_play.dart';
 import 'package:simon_says/src/models/game_plays.dart';
+import 'package:simon_says/src/models/game_state.dart';
 import 'package:simon_says/src/services/sound_player.dart';
 
 class GameBloc {
@@ -33,14 +34,19 @@ class GameBloc {
   Sink<void> get playPressAnimationStart => _playPressAnimationStart.sink;
 
   // state
-  final BehaviorSubject<GameState> _state$ =
-      BehaviorSubject<GameState>(seedValue: GameState.intro);
+  final BehaviorSubject<GameState> _state$ = BehaviorSubject<GameState>(
+      seedValue: GameState(GameState.Intro, Duration(milliseconds: 0), 0));
   Stream<GameState> get state$ => _state$.stream.distinct();
 
   // round
   int _round = 0;
   BehaviorSubject<int> _round$ = BehaviorSubject<int>(seedValue: 0);
   Stream<int> get round$ => _round$;
+
+  // score
+  // we could use Stopwatch
+  // https://api.dartlang.org/stable/2.1.0/dart-core/Stopwatch-class.html
+  DateTime _gameTimeStart;
 
   GameBloc(this._soundPlayer) {
     _soundPlayer.state$.listen((s) => print('audioPlayerState $s'));
@@ -61,7 +67,8 @@ class GameBloc {
   void startGame() {
     _setRound(0);
     _gamePlays.clear();
-    _state$.add(GameState.simonSays);
+    _gameTimeStart = DateTime.now();
+    _state$.add(_newGameState(GameState.SimonSays));
   }
 
   void dispose() {
@@ -73,7 +80,7 @@ class GameBloc {
 
   void _stateHandler(GameState state) {
     print('STATE --> $state');
-    if (state == GameState.simonSays) {
+    if (state.state == GameState.SimonSays) {
       _simonSaysHandler();
     }
   }
@@ -90,17 +97,17 @@ class GameBloc {
     if (_gamePlays.validateUserPlay(play)) {
       if (_gamePlays.isUserTurnFinished()) {
         Timer(Duration(milliseconds: lastPlayDelayMs),
-            () => _state$.add(GameState.simonSays));
+            () => _state$.add(_newGameState(GameState.SimonSays)));
       }
     } else {
-      _state$.add(GameState.gameOver);
+      _state$.add(_newGameState(GameState.GameOver));
       _sentFailPlayBatch();
       _setRound(0);
     }
   }
 
   void _lastSimonPlayHandler(GamePlay play) {
-    _state$.add(GameState.userSays);
+    _state$.add(_newGameState(GameState.UserSays));
   }
 
   void _setRound(int round) {
@@ -113,6 +120,12 @@ class GameBloc {
         isLastPlay: false, isFailedPlay: true);
     RepeatStream((count) => Observable.just(failedPlay), failedPlayRepeatTimes)
         .listen(_simonPlay$.add);
+  }
+
+  Duration get _gameDuration => DateTime.now().difference(_gameTimeStart);
+
+  GameState _newGameState(String state) {
+    return GameState(state, _gameDuration, _round);
   }
 
   void _playSound(GameColor play) async {

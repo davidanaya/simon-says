@@ -7,6 +7,7 @@ import 'package:simon_says/src/bloc/bloc_provider.dart';
 
 import 'package:simon_says/src/models/constants.dart';
 import 'package:simon_says/src/models/game_play.dart';
+import 'package:simon_says/src/models/game_state.dart';
 import 'package:simon_says/src/models/simon_color.dart';
 
 enum Tap { up, down }
@@ -74,7 +75,8 @@ class _SimonButtonState extends State<SimonButton>
     _userTapSubs = _userTap$
         .doOnData((tap) => print('_userTap\$ $tap'))
         .withLatestFrom(
-            bloc.state$.where((state) => state == GameState.userSays),
+            bloc.state$
+                .where((gameState) => gameState.state == GameState.UserSays),
             (tap, state) => tap)
         .listen((tap) =>
             _handleUserTap(tap, bloc.userPlay, bloc.playPressAnimationStart));
