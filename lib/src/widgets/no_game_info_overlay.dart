@@ -65,17 +65,22 @@ class _NoGameInfoOverlayState extends State<NoGameInfoOverlay> {
       widget.gameState.state == GameState.GameOver
           ? statusMessages[GameState.GameOver]
           : gameTitle,
-      style: TextStyle(fontSize: 24.0, color: Colors.white),
+      style: TextStyle(fontSize: 28.0, color: Colors.red),
     );
   }
 
   Widget _buildScore() {
-    return Column(children: [
+    var children = [
       Text('Round: ${widget.gameState.round}',
           style: TextStyle(fontSize: 32.0, color: Colors.white)),
       Text('Time: ${widget.gameState.duration} secs',
-          style: TextStyle(fontSize: 32.0, color: Colors.white))
-    ]);
+          style: TextStyle(fontSize: 32.0, color: Colors.white)),
+    ];
+    if (widget.gameState.isBestScore) {
+      children.add(Text('Best score!',
+          style: TextStyle(fontSize: 32.0, color: Colors.yellow)));
+    }
+    return Column(children: children);
   }
 
   Widget _buildPlay(BuildContext context) {

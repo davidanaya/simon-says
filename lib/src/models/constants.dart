@@ -32,7 +32,7 @@ final String gameTitle = 'simon says';
 
 final Map<String, String> statusMessages = {
   GameState.Intro: 'Ready to play?',
-  GameState.SimonSays: 'Simon\'s turn, pay attention...',
-  GameState.UserSays: 'Your turn...',
+  GameState.SimonSays: 'Simon\'s turn, pay attention',
+  GameState.UserSays: 'Your turn',
   GameState.GameOver: 'G A M E  O V E R'
 };

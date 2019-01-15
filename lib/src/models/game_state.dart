@@ -8,7 +8,10 @@ class GameState {
   final Duration time;
   final int round;
 
-  GameState(this.state, this.time, this.round);
+  final isBestScore;
+
+  GameState(this.state, this.time, this.round, {isBestScore})
+      : this.isBestScore = isBestScore ?? false;
 
   int get score => round;
 
