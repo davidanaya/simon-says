@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-
 import 'package:simon_says/src/bloc/bloc_provider.dart';
 import 'package:simon_says/src/models/constants.dart';
 import 'package:simon_says/src/models/game_state.dart';
+import 'package:simon_says/src/theme/fonts.dart';
 
 class StatusBar extends StatelessWidget {
   @override
@@ -20,7 +20,7 @@ class StatusBar extends StatelessWidget {
         color: Colors.black,
         child: Text(
           text,
-          style: TextStyle(color: Colors.white, fontSize: 18.0),
+          style: TextStyle(color: Colors.white, fontSize: $fontSize['xxlarge']),
           textAlign: TextAlign.center,
         ));
   }

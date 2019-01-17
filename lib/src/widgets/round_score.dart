@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-
 import 'package:simon_says/src/bloc/bloc_provider.dart';
+import 'package:simon_says/src/theme/fonts.dart';
 
 final double roundSize = 60.0;
 
@@ -31,7 +31,7 @@ class RoundScore extends StatelessWidget {
       child: Text('$round',
           style: TextStyle(
               color: Colors.white,
-              fontSize: 32.0,
+              fontSize: $fontSize['xxxlarge'],
               fontWeight: FontWeight.w700)),
     );
   }

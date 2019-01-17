@@ -2,7 +2,7 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 
-import 'package:audioplayer/audioplayer.dart';
+import 'package:audioplayer2/audioplayer2.dart';
 import 'package:flutter/services.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:simon_says/src/models/constants.dart';
@@ -24,7 +24,6 @@ class SoundPlayer {
 
   Future<void> play(GameColor color) {
     var uri = _sounds[color];
-    print('play sound $color $uri 🎵🎵🎵');
     return uri != null
         ? _audioPlayer.play(_sounds[color], isLocal: true)
         : null;
@@ -40,6 +39,5 @@ class SoundPlayer {
     File tempFile = File('${tempDir.path}/$name.mp3');
     await tempFile.writeAsBytes(data.buffer.asUint8List(), flush: true);
     _sounds[color] = tempFile.path;
-    // print('loadSound $name --> ${tempFile.path}');
   }
 }

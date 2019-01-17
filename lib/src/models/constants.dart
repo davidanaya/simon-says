@@ -1,9 +1,6 @@
-import 'package:flutter/material.dart';
 import 'package:simon_says/src/models/game_state.dart';
-
 import 'package:simon_says/src/models/simon_color.dart';
-
-// enum GameState { intro, simonSays, userSays, gameOver }
+import 'package:simon_says/src/theme/colors.dart';
 
 enum GameColor { green, red, yellow, blue }
 
@@ -16,17 +13,18 @@ final int failedPlayButtonAnimationMs = 100;
 final int overlayNoGameInfoAnimationMs = 3000;
 
 final Map<GameColor, SimonColor> gameColors = {
-  GameColor.green: SimonColor(Colors.green,
-      accent: Colors.green[300], soundFileName: 'green'),
-  GameColor.red:
-      SimonColor(Colors.red, accent: Colors.red[300], soundFileName: 'red'),
-  GameColor.yellow: SimonColor(Colors.yellow,
-      accent: Colors.yellow[300], soundFileName: 'yellow'),
-  GameColor.blue:
-      SimonColor(Colors.blue, accent: Colors.blue[300], soundFileName: 'blue')
+  GameColor.green: SimonColor($colors['green'],
+      accent: $colors['greenAccent'], soundFileName: 'green'),
+  GameColor.red: SimonColor($colors['red'],
+      accent: $colors['redAccent'], soundFileName: 'red'),
+  GameColor.yellow: SimonColor($colors['yellow'],
+      accent: $colors['yellowAccent'], soundFileName: 'yellow'),
+  GameColor.blue: SimonColor($colors['blue'],
+      accent: $colors['blueAccent'], soundFileName: 'blue')
 };
 
-final SimonColor failColor = SimonColor(Colors.grey, accent: Colors.grey[300]);
+final SimonColor failColor =
+    SimonColor($colors['green'], accent: $colors['greyAccent']);
 
 final String gameTitle = 'simon says';
 

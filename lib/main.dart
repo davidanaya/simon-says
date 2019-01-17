@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+
+import 'package:logging/logging.dart';
 
 import 'package:simon_says/src/bloc/app_bloc.dart';
 import 'package:simon_says/src/bloc/bloc_provider.dart';
@@ -7,6 +10,15 @@ import 'package:simon_says/src/services/sound_player.dart';
 
 void main() {
   SoundPlayer soundPlayer = SoundPlayer();
+
+  // hide status bar
+  SystemChrome.setEnabledSystemUIOverlays([]);
+
+  // configure logger
+  Logger.root.level = Level.INFO;
+  Logger.root.onRecord.listen((LogRecord rec) {
+    print('${rec.loggerName}(${rec.level.name}): ${rec.time}: ${rec.message}');
+  });
 
   final appBloc = AppBloc(soundPlayer);
 

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:simon_says/src/bloc/bloc_provider.dart';
 import 'package:simon_says/src/models/constants.dart';
 import 'package:simon_says/src/models/game_state.dart';
+import 'package:simon_says/src/theme/fonts.dart';
 
 class NoGameInfoOverlay extends StatefulWidget {
   final GameState gameState;
@@ -65,20 +66,25 @@ class _NoGameInfoOverlayState extends State<NoGameInfoOverlay> {
       widget.gameState.state == GameState.GameOver
           ? statusMessages[GameState.GameOver]
           : gameTitle,
-      style: TextStyle(fontSize: 28.0, color: Colors.red),
+      style: TextStyle(fontSize: $fontSize['xxlarge'], color: Colors.red),
     );
   }
 
   Widget _buildScore() {
+    if (widget.gameState.state == GameState.Intro) {
+      return Container();
+    }
+
+    var textStyle =
+        TextStyle(fontSize: $fontSize['xxxlarge'], color: Colors.white);
+
     var children = [
-      Text('Round: ${widget.gameState.round}',
-          style: TextStyle(fontSize: 32.0, color: Colors.white)),
-      Text('Time: ${widget.gameState.duration} secs',
-          style: TextStyle(fontSize: 32.0, color: Colors.white)),
+      Text('Round: ${widget.gameState.round}', style: textStyle),
+      Text('Time: ${widget.gameState.duration} secs', style: textStyle),
     ];
     if (widget.gameState.isBestScore) {
-      children.add(Text('Best score!',
-          style: TextStyle(fontSize: 32.0, color: Colors.yellow)));
+      children.add(
+          Text('Best score!', style: textStyle.apply(color: Colors.yellow)));
     }
     return Column(children: children);
   }
@@ -94,7 +100,7 @@ class _NoGameInfoOverlayState extends State<NoGameInfoOverlay> {
   Widget _buildPlayLabel() {
     return Text(
       statusMessages[GameState.Intro],
-      style: TextStyle(fontSize: 24.0, color: Colors.white),
+      style: TextStyle(fontSize: $fontSize['xxlarge'], color: Colors.white),
     );
   }
 

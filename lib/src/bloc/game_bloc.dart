@@ -1,8 +1,10 @@
 import 'dart:async';
 
+import 'package:logging/logging.dart';
 import 'package:rxdart/rxdart.dart';
 import 'package:rxdart/subjects.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+
 import 'package:simon_says/src/models/best_score.dart';
 import 'package:simon_says/src/models/constants.dart';
 import 'package:simon_says/src/models/game_play.dart';
@@ -11,6 +13,8 @@ import 'package:simon_says/src/models/game_state.dart';
 import 'package:simon_says/src/services/sound_player.dart';
 
 class GameBloc {
+  final Logger log = new Logger('GameBloc');
+
   // sound player
   final SoundPlayer _soundPlayer;
 
@@ -59,14 +63,10 @@ class GameBloc {
   DateTime _gameTimeStart;
 
   GameBloc(this._soundPlayer) {
-    _soundPlayer.state$.listen((s) => print('audioPlayerState $s'));
-
-    _bestScore$.listen((s) => print('bestscore ${s.round}-${s.time}'));
-
     state$.listen(_stateHandler);
 
     Observable(simonPlay$)
-        .doOnData((play) => print('SIMON PLAY --> ${play.play}'))
+        .doOnData((play) => log.fine('SIMON PLAY --> ${play.play}'))
         .where((play) => play.isLastPlay)
         .delay(Duration(milliseconds: lastPlayDelayMs))
         .listen(_lastSimonPlayHandler);
@@ -94,7 +94,7 @@ class GameBloc {
   }
 
   void _stateHandler(GameState state) {
-    print('STATE --> $state');
+    log.fine('STATE --> $state');
     if (state.state == GameState.SimonSays) {
       _simonSaysHandler();
     }
@@ -103,12 +103,12 @@ class GameBloc {
   _simonSaysHandler() {
     _setRound(_round + 1);
     _gamePlays.newSimonPlay();
-    print(_gamePlays.simonPlays.map((play) => '${play.play}'));
+    log.fine(_gamePlays.simonPlays.map((play) => '${play.play}'));
     _gamePlays.simonPlays.forEach(_simonPlay$.add);
   }
 
   void _userPlayHandler(GameColor play) async {
-    print('USER PLAY --> $play');
+    log.fine('USER PLAY --> $play');
     if (_gamePlays.validateUserPlay(play)) {
       if (_gamePlays.isUserTurnFinished()) {
         Timer(Duration(milliseconds: lastPlayDelayMs),
@@ -165,12 +165,14 @@ class GameBloc {
   }
 
   Future<List<bool>> _savePreferences() async {
+    _maxRound = _round;
+    _bestTime = _gameDuration.inSeconds;
     if (_prefs == null) {
       _prefs = await SharedPreferences.getInstance();
     }
     return Future.wait([
-      _prefs.setInt('simonsays.max_round', _round),
-      _prefs.setInt('simonsays.best_time', _gameDuration.inSeconds)
+      _prefs.setInt('simonsays.max_round', _maxRound),
+      _prefs.setInt('simonsays.best_time', _bestTime)
     ]);
   }
 

@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:logging/logging.dart';
 import 'package:rxdart/rxdart.dart';
 
 import 'package:simon_says/src/bloc/bloc_provider.dart';
@@ -15,6 +16,8 @@ enum Tap { up, down }
 class SimonButton extends StatefulWidget {
   final GameColor gameColor;
   final SimonColor simonColor;
+
+  final Logger log = new Logger('SimonButton');
 
   SimonButton(this.gameColor) : simonColor = gameColors[gameColor];
 
@@ -67,18 +70,17 @@ class _SimonButtonState extends State<SimonButton>
 
     // subscribe to simon plays and animate button
     _simonPlaySubs = Observable(bloc.simonPlay$)
-        .doOnData((play) => print('simonPlay\$ ${play.play}'))
+        .doOnData((play) => widget.log.fine('simonPlay\$ ${play.play}'))
         .where((gamePlay) => gamePlay.play == widget.gameColor)
         .listen((play) => _handleSimonPlay(play, bloc.playPressAnimationStart));
 
     // subscribe to user plays and animate only if it's the user turn
     _userTapSubs = _userTap$
-        .doOnData((tap) => print('_userTap\$ $tap'))
-        .withLatestFrom(
-            bloc.state$
-                .where((gameState) => gameState.state == GameState.UserSays),
-            (tap, state) => tap)
-        .listen((tap) =>
+        .doOnData((tap) => widget.log.fine('_userTap\$ $tap'))
+        .withLatestFrom(bloc.state$, (tap, state) => [tap, state])
+        .where((data) => data[1].state == GameState.UserSays)
+        .map((data) => data[0] as Tap)
+        .listen((Tap tap) =>
             _handleUserTap(tap, bloc.userPlay, bloc.playPressAnimationStart));
   }
 

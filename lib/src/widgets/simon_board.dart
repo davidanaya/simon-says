@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+
 import 'package:simon_says/src/bloc/bloc_provider.dart';
 import 'package:simon_says/src/models/constants.dart';
 import 'package:simon_says/src/models/game_state.dart';
@@ -10,7 +11,6 @@ class SimonBoard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final bloc = BlocProvider.of(context).gameBloc;
-
     return StreamBuilder(
         stream: bloc.state$,
         builder: (context, snapshot) {
@@ -28,7 +28,7 @@ class SimonBoard extends StatelessWidget {
 
   Widget _buildButtons() {
     return Container(
-        padding: EdgeInsets.all(12.0),
+        padding: EdgeInsets.fromLTRB(12.0, 12.0, 12.0, 4.0),
         color: Colors.black,
         child: Column(children: <Widget>[_buildTopRow(), _buildBottomRow()]));
   }
